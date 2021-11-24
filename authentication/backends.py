@@ -1,3 +1,5 @@
+import bdb
+
 import jwt
 
 from django.conf import settings
@@ -32,7 +34,12 @@ class JWTAuthentication(authentication.BaseAuthentication):
         # 2) сам JWT, по которому мы должны пройти аутентифкацию
         auth_header = authentication.get_authorization_header(request).split()
         auth_header_prefix = self.authentication_header_prefix.lower()
-
+        print('auth_header', auth_header)
+        print('auth_header_prefix', auth_header_prefix)
+        # import pdb
+        # pdb.set_trace()
+        # print(auth_header)
+        # print(auth_header_prefix)
         if not auth_header:
             return None
 
@@ -51,9 +58,16 @@ class JWTAuthentication(authentication.BaseAuthentication):
         # решение, потому что возможна ошибка, не сделай мы этого.
         prefix = auth_header[0].decode('utf-8')
         token = auth_header[1].decode('utf-8')
+        print('prefix- ', prefix)
+        print('token- ', token)
+        # prefix = auth_header[0]
+        # token = auth_header[1]
+        # print('prefix- ', prefix)
+        # print('token- ', token)
 
         if prefix.lower() != auth_header_prefix:
             # Префикс заголовка не тот, который мы ожидали - отказ.
+            print('Префикс заголовка не тот')
             return None
 
         # К настоящему моменту есть "шанс", что аутентификация пройдет успешно.
@@ -65,8 +79,10 @@ class JWTAuthentication(authentication.BaseAuthentication):
         Попытка аутентификации с предоставленными данными. Если успешно -
         вернуть пользователя и токен, иначе - сгенерировать исключение.
         """
+        print('token authenticate_credentials', token)
+        jwt.decode(token, settings.SECRET_KEY, algorithms='HS256')
         try:
-            payload = jwt.decode(token, settings.SECRET_KEY)
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms='HS256')
         except Exception:
             msg = 'Ошибка аутентификации. Невозможно декодировать токеню'
             raise exceptions.AuthenticationFailed(msg)
